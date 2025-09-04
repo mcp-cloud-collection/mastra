@@ -8,7 +8,7 @@ import { bundleExternals } from './analyze';
 import { noopLogger } from '@mastra/core/logger';
 import { createWorkspacePackageMap } from '../bundler/workspaceDependencies';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import * as resolve from "resolve.exports"
+import * as resolve from 'resolve.exports';
 import { readFile, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -44,6 +44,15 @@ export async function getInputOptions(
       }
     }
   }
+
+  dependencies.set(
+    '@inner/hello-world',
+    '/Users/ward/projects/mastra/tmp/monorepo-test/packages/hello-world/node_modules/.cache/@inner-hello-world.mjs',
+  );
+  dependencies.set(
+    '@inner/inner-tools',
+    '/Users/ward/projects/mastra/tmp/monorepo-test/packages/inner-tools/node_modules/.cache/@inner-inner-tools.mjs',
+  );
 
   const inputOptions = await getBundlerInputOptions(
     entryFile,
@@ -85,21 +94,21 @@ export async function getInputOptions(
       name: 'stuff',
       resolveId(id: string, importer: string | undefined, options: any) {
         if (!workspaceMap.has(id)) {
-          return
+          return;
         }
-        const pkgJson = workspaceMap.get(id)!
-        const json = readFileSync(`${pkgJson.location}/package.json`, 'utf-8')
-        const resolved = resolve.resolve(JSON.parse(json), id)
+        const pkgJson = workspaceMap.get(id)!;
+        const json = readFileSync(`${pkgJson.location}/package.json`, 'utf-8');
+        const resolved = resolve.resolve(JSON.parse(json), id);
         // @ts-expect-error - todo
-        const resolvedPath = path.join(pkgJson.location, 'node_modules/.cache', resolved[0].replace('.ts', '.js'))
+        const resolvedPath = path.join(pkgJson.location, 'node_modules/.cache', resolved[0].replace('.ts', '.js'));
 
-        console.log({ resolved, pkgJson, resolvedPath })
+        console.log({ resolved, pkgJson, resolvedPath });
 
         return {
           id: resolvedPath,
           external: true,
-        }
-      }
+        };
+      },
     });
     // fixes imports like lodash/fp/get
     inputOptions.plugins.push(nodeModulesExtensionResolver());

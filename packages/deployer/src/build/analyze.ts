@@ -231,9 +231,6 @@ export async function bundleExternals(
 
   for (const [dep, { exports, isWorkspace }] of depsToOptimize.entries()) {
     // During mastra dev we don't want to optimize external npm packages
-    if (isDev) {
-      continue;
-    }
 
     const name = dep.replaceAll('/', '-');
     reverseVirtualReferenceMap.set(name, dep);
@@ -260,7 +257,7 @@ export async function bundleExternals(
     });
   }
 
-  console.log({ virtualDependencies })
+  console.log({ virtualDependencies });
 
   if (virtualDependencies.size === 0) {
     return { output: [], reverseVirtualReferenceMap, usedExternals: {} };
@@ -279,7 +276,13 @@ export async function bundleExternals(
     logLevel: process.env.MASTRA_BUNDLER_DEBUG === 'true' ? 'debug' : 'silent',
     input: Array.from(virtualDependencies.entries()).reduce(
       (acc, [dep, virtualDep]) => {
-        acc[virtualDep.name] = `#virtual-${dep}`;
+        if (dep === '@inner/inner-tools') {
+          acc[`packages/inner-tools/node_modules/.cache/${virtualDep.name}`] = `#virtual-${dep}`;
+        } else if (dep === '@inner/hello-world') {
+          acc[`packages/hello-world/node_modules/.cache/${virtualDep.name}`] = `#virtual-${dep}`;
+        } else {
+          acc[virtualDep.name] = `#virtual-${dep}`;
+        }
         return acc;
       },
       {} as Record<string, string>,
@@ -340,7 +343,16 @@ export async function bundleExternals(
       nodeResolve({
         preferBuiltins: true,
         exportConditions: ['node'],
+        resolveOnly: ['@inner/inner-tools', '@inner/hello-world'],
       }),
+
+      {
+        name: 'stuff',
+        generateBundle(outputOptions, bundle) {
+          debugger;
+          console.log({ outputOptions, bundle });
+        },
+      } satisfies Plugin,
       // hono is imported from deployer, so we need to resolve from here instead of the project root
       aliasHono(),
       json(),
@@ -349,7 +361,7 @@ export async function bundleExternals(
 
   const { output } = await bundler.write({
     format: 'esm',
-    dir: outputDir,
+    dir: join(process.cwd(), '../..'),
     entryFileNames: '[name].mjs',
     chunkFileNames: '[name].mjs',
     hoistTransitiveImports: false,
@@ -434,6 +446,7 @@ async function validateOutput(
 
     try {
       logger.debug(`Validating if ${file.fileName} is a valid module.`);
+      debugger;
       if (file.isEntry && reverseVirtualReferenceMap.has(file.name)) {
         result.dependencies.set(reverseVirtualReferenceMap.get(file.name)!, file.fileName);
       }
@@ -542,6 +555,7 @@ If you think your configuration is valid, please open an issue.`);
       }
     }
   }
+  debugger;
   const bundlerOptions = await getBundlerOptions(mastraEntry, outputDir);
 
   const { output, reverseVirtualReferenceMap, usedExternals } = await bundleExternals(
