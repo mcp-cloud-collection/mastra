@@ -222,11 +222,19 @@ export async function bundleExternals(
       .join('\n')}`,
   );
 
-  const { externals: customExternals = [], transpilePackages = [] } = options || {};
+  const { externals: customExternals = [], transpilePackages = [], isDev = false } = options || {};
   const allExternals = [...globalExternals, ...customExternals];
   const reverseVirtualReferenceMap = new Map<string, string>();
   const virtualDependencies = new Map();
-  for (const [dep, { exports }] of depsToOptimize.entries()) {
+
+  console.log({ depsToOptimize, allExternals });
+
+  for (const [dep, { exports, isWorkspace }] of depsToOptimize.entries()) {
+    if (isWorkspace && isDev) {
+      allExternals.push(dep);
+      continue;
+    }
+
     const name = dep.replaceAll('/', '-');
     reverseVirtualReferenceMap.set(name, dep);
 
@@ -252,6 +260,11 @@ export async function bundleExternals(
     });
   }
 
+  if (virtualDependencies.size === 0) {
+    logger.debug('No virtual dependencies defined');
+    return { output: [], reverseVirtualReferenceMap, usedExternals: {} };
+  }
+
   const transpilePackagesMap = new Map<string, string>();
   for (const pkg of transpilePackages) {
     const dir = await getPackageRootPath(pkg);
@@ -270,8 +283,6 @@ export async function bundleExternals(
       },
       {} as Record<string, string>,
     ),
-    // this dependency breaks the build, so we need to exclude it
-    // TODO actually fix this so we don't need to exclude it
     external: allExternals,
     treeshake: 'smallest',
     plugins: [
