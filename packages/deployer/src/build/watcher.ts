@@ -7,6 +7,10 @@ import { tsConfigPaths } from './plugins/tsconfig-paths';
 import { bundleExternals } from './analyze';
 import { noopLogger } from '@mastra/core/logger';
 import { createWorkspacePackageMap } from '../bundler/workspaceDependencies';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import * as resolve from "resolve.exports"
+import { readFile, readFileSync } from 'node:fs';
+import path from 'node:path';
 
 export async function getInputOptions(
   entryFile: string,
@@ -77,6 +81,26 @@ export async function getInputOptions(
 
     inputOptions.plugins = plugins;
     inputOptions.plugins.push(aliasHono());
+    inputOptions.plugins.push({
+      name: 'stuff',
+      resolveId(id: string, importer: string | undefined, options: any) {
+        if (!workspaceMap.has(id)) {
+          return
+        }
+        const pkgJson = workspaceMap.get(id)!
+        const json = readFileSync(`${pkgJson.location}/package.json`, 'utf-8')
+        const resolved = resolve.resolve(JSON.parse(json), id)
+        // @ts-expect-error - todo
+        const resolvedPath = path.join(pkgJson.location, 'node_modules/.cache', resolved[0].replace('.ts', '.js'))
+
+        console.log({ resolved, pkgJson, resolvedPath })
+
+        return {
+          id: resolvedPath,
+          external: true,
+        }
+      }
+    });
     // fixes imports like lodash/fp/get
     inputOptions.plugins.push(nodeModulesExtensionResolver());
   }

@@ -230,8 +230,8 @@ export async function bundleExternals(
   console.log({ depsToOptimize, allExternals });
 
   for (const [dep, { exports, isWorkspace }] of depsToOptimize.entries()) {
-    if (isWorkspace && isDev) {
-      allExternals.push(dep);
+    // During mastra dev we don't want to optimize external npm packages
+    if (isDev) {
       continue;
     }
 
@@ -260,8 +260,9 @@ export async function bundleExternals(
     });
   }
 
+  console.log({ virtualDependencies })
+
   if (virtualDependencies.size === 0) {
-    logger.debug('No virtual dependencies defined');
     return { output: [], reverseVirtualReferenceMap, usedExternals: {} };
   }
 
@@ -295,13 +296,19 @@ export async function bundleExternals(
           {} as Record<string, string>,
         ),
       ),
+      /*
       options?.isDev
         ? ({
             name: 'external-resolver',
             async resolveId(id, importer, options) {
               const pathsToTranspile = [...transpilePackagesMap.values()];
               if (importer && pathsToTranspile.some(p => importer?.startsWith(p)) && !isRelativePath(id)) {
-                const resolved = await this.resolve(id, importer, { skipSelf: true, ...options });
+                debugger;
+                const resolved = await this.resolve(id, importer, { ...options, skipSelf: true });
+
+                if (resolved?.resolvedBy === 'rollup') {
+                  return null
+                }
 
                 return {
                   ...resolved,
@@ -313,6 +320,7 @@ export async function bundleExternals(
             },
           } as Plugin)
         : null,
+        */
       transpilePackagesMap.size
         ? esbuild({
             format: 'esm',
