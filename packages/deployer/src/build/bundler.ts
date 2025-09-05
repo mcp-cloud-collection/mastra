@@ -4,12 +4,13 @@ import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import esmShim from '@rollup/plugin-esm-shim';
 import { fileURLToPath } from 'node:url';
-import { rollup, type InputOptions, type OutputOptions } from 'rollup';
+import { rollup, type InputOptions, type OutputOptions, type Plugin } from 'rollup';
 import { esbuild } from './plugins/esbuild';
 import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
 import { analyzeBundle } from './analyze';
 import { removeDeployer } from './plugins/remove-deployer';
 import { tsConfigPaths } from './plugins/tsconfig-paths';
+import { join } from 'node:path';
 
 export async function getInputOptions(
   entryFile: string,
@@ -20,7 +21,8 @@ export async function getInputOptions(
     sourcemap = false,
     enableEsmShim = true,
     isDev = false,
-  }: { sourcemap?: boolean; enableEsmShim?: boolean; isDev?: boolean } = {},
+    workspaceRoot = undefined,
+  }: { sourcemap?: boolean; enableEsmShim?: boolean; isDev?: boolean; workspaceRoot?: string } = {},
 ): Promise<InputOptions> {
   let nodeResolvePlugin =
     platform === 'node'
@@ -70,9 +72,12 @@ export async function getInputOptions(
             };
           }
 
-          if (isDev && analyzedBundleInfo.workspaceMap.has(id)) {
+          if (isDev && analyzedBundleInfo.workspaceMap.has(id) && workspaceRoot) {
+            const filename = analyzedBundleInfo.dependencies.get(id)!;
+            const resolvedPath = join(workspaceRoot, filename);
+
             return {
-              id: analyzedBundleInfo.dependencies.get(id)!,
+              id: resolvedPath,
               external: true,
             };
           }
@@ -82,7 +87,7 @@ export async function getInputOptions(
             external: false,
           };
         },
-      },
+      } satisfies Plugin,
       alias({
         entries: [
           {
@@ -114,7 +119,7 @@ export async function getInputOptions(
             };
           }
         },
-      },
+      } satisfies Plugin,
       esbuild({
         platform,
         define: env,

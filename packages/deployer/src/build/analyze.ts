@@ -65,13 +65,6 @@ function findExternalImporter(module: OutputChunk, external: string, allOutputs:
 }
 
 /**
- * Check if a path is relative without relying on `isAbsolute()` as we want to allow package names (e.g. `@pkg/name`)
- */
-function isRelativePath(id: string): boolean {
-  return id === '.' || id === '..' || id.startsWith('./') || id.startsWith('../');
-}
-
-/**
  * Analyzes the entry file to identify dependencies that need optimization.
  * This is the first step of the bundle analysis process.
  *
@@ -209,7 +202,8 @@ export async function bundleExternals(
     externals?: string[];
     transpilePackages?: string[];
     isDev?: boolean;
-    workspacesRoot?: WorkspacesRoot | null;
+    workspaceRoot?: string;
+    workspaceMap?: Map<string, WorkspacePackageInfo>;
   },
 ) {
   logger.info('Optimizing dependencies...');
@@ -222,8 +216,9 @@ export async function bundleExternals(
   const {
     externals: customExternals = [],
     transpilePackages = [],
-    workspacesRoot = null,
+    workspaceRoot = null,
     isDev = false,
+    workspaceMap = new Map(),
   } = options || {};
   const allExternals = [...globalExternals, ...customExternals];
   const reverseVirtualReferenceMap = new Map<string, string>();
@@ -232,7 +227,7 @@ export async function bundleExternals(
   for (const [dep, { exports, isWorkspace, rootPath }] of depsToOptimize.entries()) {
     let name = dep.replaceAll('/', '-');
 
-    if (isWorkspace && rootPath && isDev && workspacesRoot?.location) {
+    if (isWorkspace && rootPath && isDev && workspaceRoot) {
       const absolutePath = getCompiledDepCachePath(rootPath, name);
 
       /**
@@ -242,7 +237,7 @@ export async function bundleExternals(
         /**
          * The Rollup output.entryFileNames option doesn't allow relative or absolute paths, so the cacheDirAbsolutePath needs to be converted to a name relative to the workspace root.
          */
-        .replace(workspacesRoot.location, '')
+        .replace(workspaceRoot, '')
         /**
          * Remove leading slashes/backslashes
          */
@@ -322,6 +317,8 @@ export async function bundleExternals(
       nodeResolve({
         preferBuiltins: true,
         exportConditions: ['node'],
+        // Do not embed external dependencies into files that we write to `node_modules/.cache` (for the mastra dev + workspace use case)
+        ...(workspaceMap.size > 0 ? { resolveOnly: Array.from(workspaceMap.keys()) } : {}),
       }),
       // hono is imported from deployer, so we need to resolve from here instead of the project root
       aliasHono(),
@@ -336,7 +333,7 @@ export async function bundleExternals(
      *
      * Otherwise, use outputDir as normal.
      */
-    dir: isDev ? (workspacesRoot?.location ? workspacesRoot.location : outputDir) : outputDir,
+    dir: isDev ? (workspaceRoot ? workspaceRoot : outputDir) : outputDir,
     entryFileNames: '[name].mjs',
     chunkFileNames: '[name].mjs',
     hoistTransitiveImports: false,

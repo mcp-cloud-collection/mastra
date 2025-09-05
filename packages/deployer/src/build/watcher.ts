@@ -20,7 +20,7 @@ export async function getInputOptions(
 ) {
   const dependencies = new Map<string, string>();
   const workspaceMap = await createWorkspacePackageMap();
-  const workspacesRoot = findWorkspacesRoot();
+  const workspaceRoot = findWorkspacesRoot()?.location;
   const depsToOptimize = new Map<string, DependencyMetadata>();
 
   if (transpilePackages.length) {
@@ -41,7 +41,8 @@ export async function getInputOptions(
     const { output, reverseVirtualReferenceMap } = await bundleExternals(depsToOptimize, '.mastra/.build', noopLogger, {
       transpilePackages,
       isDev: true,
-      workspacesRoot,
+      workspaceRoot,
+      workspaceMap,
     });
 
     for (const file of output) {
@@ -55,8 +56,6 @@ export async function getInputOptions(
     }
   }
 
-  console.log({ dependencies });
-
   const inputOptions = await getBundlerInputOptions(
     entryFile,
     {
@@ -67,7 +66,7 @@ export async function getInputOptions(
     },
     platform,
     env,
-    { sourcemap, isDev: true },
+    { sourcemap, isDev: true, workspaceRoot },
   );
 
   if (Array.isArray(inputOptions.plugins)) {
