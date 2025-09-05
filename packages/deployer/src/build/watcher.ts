@@ -7,6 +7,10 @@ import { tsConfigPaths } from './plugins/tsconfig-paths';
 import { bundleExternals } from './analyze';
 import { noopLogger } from '@mastra/core/logger';
 import { createWorkspacePackageMap } from '../bundler/workspaceDependencies';
+import type { DependencyMetadata } from './types';
+import { getPackageName, getPackageRootPath } from './utils';
+import { findWorkspacesRoot } from 'find-workspaces';
+import { relativeWorkspaceDeps } from './plugins/relative-workspace-deps';
 
 export async function getInputOptions(
   entryFile: string,
@@ -16,19 +20,29 @@ export async function getInputOptions(
 ) {
   const dependencies = new Map<string, string>();
   const workspaceMap = await createWorkspacePackageMap();
+  const workspacesRoot = findWorkspacesRoot();
+  const depsToOptimize = new Map<string, DependencyMetadata>();
 
   if (transpilePackages.length) {
-    const { output, reverseVirtualReferenceMap } = await bundleExternals(
-      new Map(
-        transpilePackages.map(pkg => [pkg, { exports: ['*'], rootPath: null, isWorkspace: workspaceMap.has(pkg) }]),
-      ),
-      '.mastra/.build',
-      noopLogger,
-      {
-        transpilePackages,
-        isDev: true,
-      },
-    );
+    for (const pkg of transpilePackages) {
+      const isWorkspace = workspaceMap.has(pkg);
+      const exports = ['*'];
+
+      const pkgName = getPackageName(pkg);
+      let rootPath: string | null = null;
+
+      if (pkgName && pkgName !== '#tools') {
+        rootPath = await getPackageRootPath(pkgName);
+      }
+
+      depsToOptimize.set(pkg, { exports, isWorkspace, rootPath });
+    }
+
+    const { output, reverseVirtualReferenceMap } = await bundleExternals(depsToOptimize, '.mastra/.build', noopLogger, {
+      transpilePackages,
+      isDev: true,
+      workspacesRoot,
+    });
 
     for (const file of output) {
       if (file.type === 'asset') {
@@ -41,6 +55,8 @@ export async function getInputOptions(
     }
   }
 
+  console.log({ dependencies });
+
   const inputOptions = await getBundlerInputOptions(
     entryFile,
     {
@@ -51,7 +67,7 @@ export async function getInputOptions(
     },
     platform,
     env,
-    { sourcemap },
+    { sourcemap, isDev: true },
   );
 
   if (Array.isArray(inputOptions.plugins)) {
@@ -77,6 +93,7 @@ export async function getInputOptions(
 
     inputOptions.plugins = plugins;
     inputOptions.plugins.push(aliasHono());
+    inputOptions.plugins.push(relativeWorkspaceDeps(workspaceMap));
     // fixes imports like lodash/fp/get
     inputOptions.plugins.push(nodeModulesExtensionResolver());
   }

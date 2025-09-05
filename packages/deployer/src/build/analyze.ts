@@ -18,14 +18,10 @@ import { tsConfigPaths } from './plugins/tsconfig-paths';
 import { writeFile } from 'node:fs/promises';
 import { getBundlerOptions } from './bundlerOptions';
 import { checkConfigExport } from './babel/check-config-export';
-import { getPackageName, getPackageRootPath } from './utils';
+import { getCompiledDepCachePath, getPackageName, getPackageRootPath } from './utils';
 import { createWorkspacePackageMap, type WorkspacePackageInfo } from '../bundler/workspaceDependencies';
-
-interface DependencyMetadata {
-  exports: string[];
-  rootPath: string | null;
-  isWorkspace: boolean;
-}
+import type { DependencyMetadata } from './types';
+import type { WorkspacesRoot } from 'find-workspaces';
 
 // TODO: Make this extendable or find a rollup plugin that can do this
 const globalExternals = [
@@ -213,6 +209,7 @@ export async function bundleExternals(
     externals?: string[];
     transpilePackages?: string[];
     isDev?: boolean;
+    workspacesRoot?: WorkspacesRoot | null;
   },
 ) {
   logger.info('Optimizing dependencies...');
@@ -222,12 +219,36 @@ export async function bundleExternals(
       .join('\n')}`,
   );
 
-  const { externals: customExternals = [], transpilePackages = [] } = options || {};
+  const {
+    externals: customExternals = [],
+    transpilePackages = [],
+    workspacesRoot = null,
+    isDev = false,
+  } = options || {};
   const allExternals = [...globalExternals, ...customExternals];
   const reverseVirtualReferenceMap = new Map<string, string>();
   const virtualDependencies = new Map();
-  for (const [dep, { exports }] of depsToOptimize.entries()) {
-    const name = dep.replaceAll('/', '-');
+
+  for (const [dep, { exports, isWorkspace, rootPath }] of depsToOptimize.entries()) {
+    let name = dep.replaceAll('/', '-');
+
+    if (isWorkspace && rootPath && isDev && workspacesRoot?.location) {
+      const absolutePath = getCompiledDepCachePath(rootPath, name);
+
+      /**
+       * Further below `[name].mjs` is used. By making the name something like `packages/bar/node_modules/.cache/@monorepo-bar` Rollup writes the file to that path. For this also the `dir` needs adjusting.
+       */
+      name = absolutePath
+        /**
+         * The Rollup output.entryFileNames option doesn't allow relative or absolute paths, so the cacheDirAbsolutePath needs to be converted to a name relative to the workspace root.
+         */
+        .replace(workspacesRoot.location, '')
+        /**
+         * Remove leading slashes/backslashes
+         */
+        .replace(/^[/\\]+/, '');
+    }
+
     reverseVirtualReferenceMap.set(name, dep);
 
     const virtualFile: string[] = [];
@@ -310,7 +331,12 @@ export async function bundleExternals(
 
   const { output } = await bundler.write({
     format: 'esm',
-    dir: outputDir,
+    /**
+     * If Mastra is used inside a monorepo, we need to find the workspace root so that Rollup can use it as base for the output dir. This should only happen during `mastra dev`.
+     *
+     * Otherwise, use outputDir as normal.
+     */
+    dir: isDev ? (workspacesRoot?.location ? workspacesRoot.location : outputDir) : outputDir,
     entryFileNames: '[name].mjs',
     chunkFileNames: '[name].mjs',
     hoistTransitiveImports: false,
