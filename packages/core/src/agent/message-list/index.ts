@@ -2068,10 +2068,12 @@ export class MessageList {
     // Restore original content from metadata if it exists
     const originalContent = (v3Msg.content.metadata as any)?.__originalContent;
     if (originalContent !== undefined) {
-      if (
-        typeof originalContent !== `string` ||
-        v2Msg.content.parts.every(p => p.type === `step-start` || p.type === `text`)
-      ) {
+      // Only restore original content if:
+      // 1. It's a string (simple text content), OR
+      // 2. We only have text/step-start parts (no file, tool, reasoning parts)
+      const hasOnlyTextOrStepStart = v2Msg.content.parts.every(p => p.type === `step-start` || p.type === `text`);
+
+      if (typeof originalContent === `string` || hasOnlyTextOrStepStart) {
         v2Msg.content.content = originalContent;
       }
     }
@@ -2086,14 +2088,21 @@ export class MessageList {
 
     // For AI SDK V4 compatibility: External URLs in file parts may need to be in experimental_attachments
     // However, we should preserve file parts that have providerMetadata for proper roundtrip conversion
-    // Only move URL file parts to experimental_attachments if they don't have providerMetadata
-    const urlFileParts = v2Msg.content.parts.filter(
-      p =>
-        p.type === 'file' &&
-        typeof p.data === 'string' &&
-        (p.data.startsWith('http://') || p.data.startsWith('https://')) &&
-        !p.providerMetadata, // Don't move if it has providerMetadata (needed for roundtrip)
-    );
+    // Also preserve file parts that came from AI SDK v5 format (which have URLs in file parts)
+    // We can detect V5 format by checking if __originalContent is an array with file parts
+    const originalContentIsV5 =
+      Array.isArray((v3Msg.content.metadata as any)?.__originalContent) &&
+      (v3Msg.content.metadata as any)?.__originalContent.some((part: any) => part.type === 'file');
+
+    const urlFileParts = originalContentIsV5
+      ? []
+      : v2Msg.content.parts.filter(
+          p =>
+            p.type === 'file' &&
+            typeof p.data === 'string' &&
+            (p.data.startsWith('http://') || p.data.startsWith('https://')) &&
+            !p.providerMetadata, // Don't move if it has providerMetadata (needed for roundtrip)
+        );
 
     if (urlFileParts.length > 0) {
       // Initialize experimental_attachments if not present

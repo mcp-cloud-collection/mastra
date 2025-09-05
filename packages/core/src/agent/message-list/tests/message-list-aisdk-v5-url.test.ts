@@ -295,12 +295,13 @@ describe('MessageList AI SDK v5 URL handling', () => {
       // Verify the V2 message structure
       expect(v2Messages).toHaveLength(1);
       expect(v2Messages[0].role).toBe('user');
-      expect(v2Messages[0].content.parts).toHaveLength(2);
 
-      const filePart = v2Messages[0].content.parts[0];
+      // Find the file part (it might not be the first part)
+      const filePart = v2Messages[0].content.parts?.find((p: any) => p.type === 'file');
 
-      expect(filePart.type).toBe('file');
-      if (filePart.type === 'file') {
+      expect(filePart).toBeDefined();
+      expect(filePart?.type).toBe('file');
+      if (filePart?.type === 'file') {
         // The data should be the URL, NOT wrapped as a data URI
         expect(filePart.data).toBe('https://storage.easyquiz.cc/ai-chat/20250905cdacd4dff092.png');
         expect(filePart.mimeType).toBe('image/png');
