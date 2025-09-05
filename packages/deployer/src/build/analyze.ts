@@ -270,8 +270,6 @@ export async function bundleExternals(
       },
       {} as Record<string, string>,
     ),
-    // this dependency breaks the build, so we need to exclude it
-    // TODO actually fix this so we don't need to exclude it
     external: allExternals,
     treeshake: 'smallest',
     plugins: [
@@ -284,24 +282,6 @@ export async function bundleExternals(
           {} as Record<string, string>,
         ),
       ),
-      options?.isDev
-        ? ({
-            name: 'external-resolver',
-            async resolveId(id, importer, options) {
-              const pathsToTranspile = [...transpilePackagesMap.values()];
-              if (importer && pathsToTranspile.some(p => importer?.startsWith(p)) && !isRelativePath(id)) {
-                const resolved = await this.resolve(id, importer, { skipSelf: true, ...options });
-
-                return {
-                  ...resolved,
-                  external: true,
-                };
-              }
-
-              return null;
-            },
-          } as Plugin)
-        : null,
       transpilePackagesMap.size
         ? esbuild({
             format: 'esm',
