@@ -410,8 +410,11 @@ function getToolCallFromPrompt(prompt: string): { toolName: string; toolCallId: 
     }
   }
 
-  // Calculator tool detection
-  if (lowerPrompt.includes('calculate') || lowerPrompt.includes('add') || lowerPrompt.includes('multiply')) {
+  // Calculator tool detection - more restrictive
+  if (
+    (lowerPrompt.includes('calculate') && (lowerPrompt.includes('+') || lowerPrompt.includes('*'))) ||
+    lowerPrompt.includes('use the calculator tool')
+  ) {
     if (!toolsCalled.has('calculator')) {
       toolsCalled.add('calculator');
       return {
@@ -1238,7 +1241,7 @@ describe('AI Tracing Integration Tests', () => {
       expect(toolCallSpans.length).toBeGreaterThanOrEqual(1);
 
       // Find the metadata tool span and validate custom metadata
-      const metadataToolSpan = toolCallSpans.find(span => span.name?.includes('metadata-tool'));
+      const metadataToolSpan = toolCallSpans.find(span => span.name?.includes('metadataTool'));
       if (metadataToolSpan) {
         expect(metadataToolSpan.metadata?.toolOperation).toBe('metadata-processing');
         expect(metadataToolSpan.metadata?.customFlag).toBe(true);
