@@ -21,7 +21,6 @@ import { checkConfigExport } from './babel/check-config-export';
 import { getCompiledDepCachePath, getPackageName, getPackageRootPath } from './utils';
 import { createWorkspacePackageMap, type WorkspacePackageInfo } from '../bundler/workspaceDependencies';
 import type { DependencyMetadata } from './types';
-import type { WorkspacesRoot } from 'find-workspaces';
 
 // TODO: Make this extendable or find a rollup plugin that can do this
 const globalExternals = [
@@ -318,7 +317,7 @@ export async function bundleExternals(
         preferBuiltins: true,
         exportConditions: ['node'],
         // Do not embed external dependencies into files that we write to `node_modules/.cache` (for the mastra dev + workspace use case)
-        ...(workspaceMap.size > 0 ? { resolveOnly: Array.from(workspaceMap.keys()) } : {}),
+        ...(workspaceMap.size > 0 && isDev ? { resolveOnly: Array.from(workspaceMap.keys()) } : {}),
       }),
       // hono is imported from deployer, so we need to resolve from here instead of the project root
       aliasHono(),
