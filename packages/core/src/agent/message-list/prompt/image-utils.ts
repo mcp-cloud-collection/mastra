@@ -246,7 +246,7 @@ export function classifyFileData(data: string): {
   }
 
   // Check if it looks like base64 (simple heuristic)
-  if (/^[A-Za-z0-9+/]+=*$/.test(data) && data.length > 20) {
+  if (/^[A-Za-z0-9+/\-_]+=*$/.test(data) && data.length > 20) {
     return { type: 'base64' };
   }
 
