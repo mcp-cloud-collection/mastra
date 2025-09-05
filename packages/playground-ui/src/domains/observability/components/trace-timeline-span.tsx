@@ -174,9 +174,7 @@ export function TraceTimelineSpan({
 
       {hasChildren &&
         span.spans?.map((childSpan: UISpan, idx: number, array: UISpan[]) => {
-          const isFirstChild = idx === 0;
           const isLastChild = idx === array.length - 1;
-          const isNextToLastChild = idx === array.length - 2;
 
           return (
             <TraceTimelineSpan
