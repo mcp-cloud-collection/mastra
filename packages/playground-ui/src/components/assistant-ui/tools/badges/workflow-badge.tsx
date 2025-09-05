@@ -61,34 +61,23 @@ interface WorkflowBadgeExtendedProps {
 
 const WorkflowBadgeExtended = ({ workflowId, workflow, runId }: WorkflowBadgeExtendedProps) => {
   const { Link } = useLinkComponent();
-  // const { runs, isLoading: isRunsLoading } = useWorkflowRuns(workflowId, { enabled: Boolean(runId) });
-  // const run = runs?.runs.find(run => run.runId === runId);
-
-  // const isLoading = isRunsLoading || !run;
 
   return (
     <div className="pt-2">
       <div className="border-sm border-border1 rounded-lg bg-surface4">
         <div className="p-4 border-b-sm border-border1">
-          {/* {isLoading ? (
-            <div className="flex items-center justify-center h-[50vh]">
-              <Spinner />
-            </div>
-          ) : ( */}
-          <>
-            <div className="flex items-center gap-2 pb-2">
-              <Button as={Link} href={`/workflows/${workflowId}/graph`}>
-                Go to workflow
-              </Button>
-              <Button as={Link} href={`/workflows/${workflowId}/graph/${runId}`}>
-                See run
-              </Button>
-            </div>
+          <div className="flex items-center gap-2 pb-2">
+            <Button as={Link} href={`/workflows/${workflowId}/graph`}>
+              Go to workflow
+            </Button>
+            <Button as={Link} href={`/workflows/${workflowId}/graph/${runId}`}>
+              See run
+            </Button>
+          </div>
 
-            <div className="rounded-md overflow-hidden h-[60vh] w-full">
-              <WorkflowGraph workflowId={workflowId} workflow={workflow!} />
-            </div>
-          </>
+          <div className="rounded-md overflow-hidden h-[60vh] w-full">
+            <WorkflowGraph workflowId={workflowId} workflow={workflow!} />
+          </div>
         </div>
       </div>
     </div>

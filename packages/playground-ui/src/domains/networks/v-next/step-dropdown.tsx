@@ -265,7 +265,7 @@ interface WorkflowStepResultDialogProps {
 
 const WorkflowStepResultDialog = ({ open, onOpenChange, workflowId, runId }: WorkflowStepResultDialogProps) => {
   const { runs } = useWorkflowRuns(workflowId);
-  const { workflow, isLoading } = useWorkflow(workflowId);
+  const { data: workflow, isLoading } = useWorkflow(workflowId);
   const run = runs?.runs.find((run: any) => run.runId === runId);
 
   return (
