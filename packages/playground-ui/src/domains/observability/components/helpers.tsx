@@ -66,7 +66,7 @@ export function getSpanInfo({ span, withTraceId = true, withSpanId = true }: get
     {
       key: 'createdAt',
       label: 'Created at',
-      value: span?.createdAt ? format(new Date(span.createdAt), 'MMM dd, HH:mm:ss.SSS') : '-',
+      value: span?.createdAt ? format(new Date(span?.createdAt), 'MMM dd, HH:mm:ss.SSS') : '-',
     },
     {
       key: 'startedAt',
