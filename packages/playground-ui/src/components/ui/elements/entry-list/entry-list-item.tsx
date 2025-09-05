@@ -16,7 +16,7 @@ export function EntryListItem({
   columns?: Column[];
   isLoading?: boolean;
 }) {
-  const isSelected = selectedItemId && selectedItemId === item.id;
+  const isSelected = selectedItemId === item.id;
 
   const handleClick = () => {
     return onClick && onClick(item?.id);
