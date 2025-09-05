@@ -30,7 +30,6 @@ describe('MessageList - File URL Handling', () => {
     const v3Messages = messageList.get.all.v3();
     const v3FilePart = v3Messages[0].content.parts.find((p: any) => p.type === 'file');
 
-
     // V3 should have URL in the url field
     expect(v3FilePart).toBeDefined();
     expect(v3FilePart?.type).toBe('file');
@@ -41,7 +40,6 @@ describe('MessageList - File URL Handling', () => {
     // Get V2 messages back (used by InputProcessors)
     const v2MessagesBack = messageList.get.all.v2();
     const v2FilePartBack = v2MessagesBack[0].content.parts?.find((p: any) => p.type === 'file');
-
 
     // V2 should maintain the original URL
     expect(v2FilePartBack).toBeDefined();
@@ -81,7 +79,6 @@ describe('MessageList - File URL Handling', () => {
     // The file part's data should be the original URL, not corrupted
     expect(filePart).toBeDefined();
     if (filePart?.type === 'file') {
-
       // This is the critical assertion - InputProcessors should receive the clean URL
       expect(filePart.data).toBe(imageUrl);
       expect(filePart.data).not.toContain('data:image/png;base64,');
@@ -144,8 +141,6 @@ describe('MessageList - File URL Handling', () => {
 
       const v2Messages = list.get.all.v2();
       const v2FilePart = v2Messages[0].content.parts?.find((p: any) => p.type === 'file');
-
-      const originalPart = msg.content.parts[0] as any;
 
       if (msg.id === 'url-msg') {
         // URL should be preserved as-is

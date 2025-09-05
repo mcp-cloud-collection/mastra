@@ -30,7 +30,6 @@ describe('MessageList - AI SDK v4 Attachment Handling', () => {
     // Get AI SDK v4 UI messages - this is what gets passed to convertToCoreMessages
     const v4UIMessages = messageList.get.all.aiV4.ui();
 
-
     // Check that the file attachment is formatted correctly for AI SDK v4
     expect(v4UIMessages).toHaveLength(1);
     const userMessage = v4UIMessages[0];
@@ -90,7 +89,6 @@ describe('MessageList - AI SDK v4 Attachment Handling', () => {
 
     const v4UIMessages = messageList.get.all.aiV4.ui();
 
-
     // This should not throw an error for proper base64 data
     let coreMessages;
     try {
@@ -121,7 +119,6 @@ describe('MessageList - AI SDK v4 Attachment Handling', () => {
         ],
       },
     ];
-
 
     // Let's see what actually happens
     let result;
@@ -158,10 +155,9 @@ describe('MessageList - AI SDK v4 Attachment Handling', () => {
       },
     ];
 
-
     // This should throw the AI_InvalidDataContentError
     expect(() => {
-      const result = AIV4.convertToCoreMessages(buggyMessages as any);
+      AIV4.convertToCoreMessages(buggyMessages as any);
     }).toThrow(/Invalid data content|base64/i);
   });
 

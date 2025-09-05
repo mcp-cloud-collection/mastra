@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MessageList } from '../index';
 import type { MastraMessageV2 } from '../../types';
+import { MessageList } from '../index';
 
 describe('MessageList AI SDK v5 URL handling', () => {
   describe('V2 to V3 conversion for AI SDK v5', () => {
