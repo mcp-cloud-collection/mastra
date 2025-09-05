@@ -20,9 +20,7 @@ type TraceTimelineSpanProps = {
   depth?: number;
   onSpanClick?: (id: string) => void;
   selectedSpanId?: string;
-  isFirstChild?: boolean;
   isLastChild?: boolean;
-  isNextToLastChild?: boolean;
   overallLatency?: number;
   overallStartTime?: string;
 };
@@ -32,9 +30,7 @@ export function TraceTimelineSpan({
   depth = 0,
   onSpanClick,
   selectedSpanId,
-  isFirstChild,
   isLastChild,
-  isNextToLastChild,
   overallLatency,
   overallStartTime,
 }: TraceTimelineSpanProps) {
@@ -69,13 +65,7 @@ export function TraceTimelineSpan({
         style={{ paddingLeft: `${depth * 1.4}rem` }}
       >
         <div className="flex items-center gap-[1rem] w-full">
-          {!isRootSpan && (
-            <TreePositionMark
-              isLastChild={isLastChild}
-              isFirstChild={isFirstChild}
-              hasChildren={Boolean(hasChildren)}
-            />
-          )}
+          {!isRootSpan && <TreePositionMark isLastChild={isLastChild} hasChildren={Boolean(hasChildren)} />}
           <div className={cn('text-[0.875rem] flex items-center text-left break-all gap-[0.5rem] text-[#fff]  w-full')}>
             {spanUI?.icon && (
               <span className="[&>svg]:w-[1.25em] [&>svg]:h-[1.25em] [&>svg]:shrink-0" style={{ color: spanUI?.color }}>
@@ -195,9 +185,7 @@ export function TraceTimelineSpan({
               depth={depth + 1}
               onSpanClick={onSpanClick}
               selectedSpanId={selectedSpanId}
-              isFirstChild={isFirstChild}
               isLastChild={isLastChild}
-              isNextToLastChild={isNextToLastChild}
               overallLatency={overallLatency}
               overallStartTime={overallStartTime}
             />
@@ -209,7 +197,6 @@ export function TraceTimelineSpan({
 
 type TreeSymbolProps = {
   isLastChild?: boolean;
-  isFirstChild?: boolean;
   hasChildren?: boolean;
 };
 

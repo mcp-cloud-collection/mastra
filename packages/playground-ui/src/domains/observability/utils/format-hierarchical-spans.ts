@@ -32,7 +32,7 @@ export const formatHierarchicalSpans = (spans: AISpanRecord[]): UISpan[] => {
   spans.forEach(spanRecord => {
     const uiSpan = spanMap.get(spanRecord.spanId)!;
 
-    if (spanRecord.parentSpanId === null) {
+    if (spanRecord?.parentSpanId === null) {
       // This is a root span
       rootSpans.push(uiSpan);
     } else {

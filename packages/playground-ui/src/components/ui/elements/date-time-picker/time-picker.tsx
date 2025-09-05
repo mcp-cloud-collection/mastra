@@ -27,8 +27,6 @@ export function TimePicker({ defaultValue, onValueChange, className }: TimePicke
         const parsedMinute = parseInt(match[2], 10);
         const period = match[3]?.toUpperCase();
 
-        console.log('Parsed time:', { parsedHour, parsedMinute, period });
-
         if (parsedHour >= 1 && parsedHour <= 12 && parsedMinute >= 0 && parsedMinute <= 59) {
           setHour(parsedHour.toString());
           setMinute(parsedMinute === 0 ? '00' : parsedMinute.toString());
@@ -40,7 +38,7 @@ export function TimePicker({ defaultValue, onValueChange, className }: TimePicke
 
   const handleHourChange = (val: string) => {
     setHour(val);
-    onValueChange(`${val}:${minute} ${timePeriod}`.trim());
+    onValueChange(`${hourOptions[+val]}:${minute} ${timePeriod}`.trim());
   };
 
   const handleMinuteChange = (val: string) => {
@@ -60,7 +58,7 @@ export function TimePicker({ defaultValue, onValueChange, className }: TimePicke
         value={hourOptions.indexOf(hour).toString()}
         onChange={handleHourChange}
         options={hourOptions}
-      />{' '}
+      />
       :
       <Select
         name="minute"
