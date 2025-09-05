@@ -179,7 +179,9 @@ export const DateTimePickerContent = ({
   };
 
   const handleApply = () => {
-    onValueChange(dateInputValueDate);
+    if (isValid(dateInputValueDate)) {
+      onValueChange(dateInputValueDate);
+    }
     setOpenPopover?.(false);
   };
 
