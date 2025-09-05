@@ -30,7 +30,7 @@ export function TimePicker({ defaultValue, onValueChange, className }: TimePicke
         if (parsedHour >= 1 && parsedHour <= 12 && parsedMinute >= 0 && parsedMinute <= 59) {
           setHour(parsedHour.toString());
           setMinute(parsedMinute === 0 ? '00' : parsedMinute.toString());
-          setTimePeriod(period);
+          setTimePeriod(period || 'AM');
         }
       }
     }
