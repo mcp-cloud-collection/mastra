@@ -122,7 +122,7 @@ export function TraceDialog({
         </SideDialogTop>
 
         <div
-          className={cn('pt-[1.5rem] pl-[2rem] grid-rows-[auto_1fr] grid h-full overflow-y-auto', {
+          className={cn('pt-[1.5rem] pl-[2.5rem] grid-rows-[auto_1fr] grid h-full overflow-y-auto', {
             'grid-rows-[auto_1fr_1fr]': selectedSpan && combinedView,
           })}
         >
@@ -141,7 +141,7 @@ export function TraceDialog({
               <TraceSpanUsage
                 traceUsage={traceDetails?.metadata?.usage}
                 traceSpans={traceSpans}
-                className="mt-[3rem] pr-[1.5rem]"
+                className="mt-[2rem] pr-[1.5rem]"
               />
             )}
             <KeyValueList data={traceInfo} LinkComponent={Link} className="mt-[2rem]" />
@@ -151,7 +151,7 @@ export function TraceDialog({
               onSpanClick={handleSpanClick}
               selectedSpanId={selectedSpanId}
               isLoading={isLoadingSpans}
-              className="pr-[1.5rem] pt-[2.5rem]"
+              className="pr-[2.5rem] pt-[2.5rem]"
             />
           </div>
 
@@ -184,7 +184,7 @@ export function TraceDialog({
 
               <div className="grid grid-cols-[20rem_1fr] gap-[1rem] overflow-y-auto">
                 <div className="overflow-y-auto grid content-start p-[1.5rem] pl-0 gap-[2rem]">
-                  <SideDialogHeading>
+                  <SideDialogHeading as="h2">
                     <ChevronsLeftRightEllipsisIcon /> {selectedSpan?.name}
                   </SideDialogHeading>
                   {selectedSpan?.attributes?.usage && (
@@ -195,7 +195,7 @@ export function TraceDialog({
                   )}
                   <KeyValueList data={selectedSpanInfo} LinkComponent={Link} />
                 </div>
-                <div className="overflow-y-auto pr-[1.5rem] pt-[2rem]">
+                <div className="overflow-y-auto pr-[2.5rem] pt-[2rem]">
                   <SpanDetails span={selectedSpan} />
                 </div>
               </div>

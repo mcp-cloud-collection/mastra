@@ -29,7 +29,7 @@ export function TraceTimeline({
 
   return (
     <div className={cn('grid gap-[1rem]', className)}>
-      <div className="flex w-full justify-between pr-[4rem]">
+      <div className="flex w-full justify-between pr-[2.5rem]">
         <SideDialogHeading as="h2">
           <ListTreeIcon /> Timeline
         </SideDialogHeading>

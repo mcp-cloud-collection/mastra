@@ -63,7 +63,7 @@ export function SpanDialog({
         </button>
       </div>
 
-      <div className="p-[1.5rem] px-[2.5rem] overflow-y-auto grid gap-[1.5rem]">
+      <div className="p-[1.5rem] px-[2.5rem] overflow-y-auto grid gap-[1.5rem] content-start">
         <SideDialogHeader className="flex gap-[1rem] items-baseline pr-[2.5rem]">
           <SideDialogHeading>
             <ChevronsLeftRightEllipsisIcon /> {span?.name}
