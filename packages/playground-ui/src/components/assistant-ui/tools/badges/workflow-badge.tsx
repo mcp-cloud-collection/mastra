@@ -21,7 +21,9 @@ export interface WorkflowBadgeProps {
 
 export const WorkflowBadge = ({ workflow, runId, workflowId, isStreaming }: WorkflowBadgeProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { runs, isLoading: isRunsLoading } = useWorkflowRuns(workflowId, { enabled: Boolean(runId) && !isStreaming });
+  const { data: runs, isLoading: isRunsLoading } = useWorkflowRuns(workflowId, {
+    enabled: Boolean(runId) && !isStreaming,
+  });
   const run = runs?.runs.find(run => run.runId === runId);
   const isLoading = isRunsLoading || !run;
 
