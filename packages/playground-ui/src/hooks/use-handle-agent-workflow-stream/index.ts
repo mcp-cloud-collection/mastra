@@ -77,6 +77,7 @@ export const useHandleAgentWorkflowStream = (workflowOutput?: WorkflowOutputType
               id: workflowOutput.payload?.id,
               payload: workflowOutput.payload?.payload,
               status: workflowOutput.payload?.status as WorkflowRunStatus,
+              output: workflowOutput.payload?.output,
             },
             workflowState: {
               ...prevStreamResult?.payload?.workflowState,
@@ -86,8 +87,8 @@ export const useHandleAgentWorkflowStream = (workflowOutput?: WorkflowOutputType
                 [workflowOutput.payload?.id]: {
                   ...prevStreamResult?.payload?.workflowState?.steps[workflowOutput.payload?.id],
                   status: workflowOutput.payload?.status as WorkflowRunStatus,
-                  payload: workflowOutput.payload?.payload,
                   endedAt: workflowOutput.payload?.endedAt,
+                  output: workflowOutput.payload?.output,
                 },
               },
             },
