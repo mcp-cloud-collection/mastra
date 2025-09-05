@@ -837,7 +837,7 @@ describe('MessageList V5 Support', () => {
             role: 'user',
             content: [
               { type: 'text', text: 'Analyze' },
-              { type: 'file', data: imageDataUri },
+              { type: 'file', data: imageDataUri, mimeType: 'image/jpeg' },
             ],
           },
         ],
@@ -959,9 +959,6 @@ describe('MessageList V5 Support', () => {
       const v3Messages = messageList.get.all.v3();
       const v3FilePart = v3Messages[0].content.parts.find((p: any) => p.type === 'file');
 
-      // Debug: log what the V3 message looks like
-
-      // The URL should be preserved correctly in the V3 message
       if (v3FilePart?.type === 'file') {
         expect(v3FilePart.url).toBe(imageUrl);
         // It should NOT be wrapped as a malformed data URI
@@ -998,8 +995,6 @@ describe('MessageList V5 Support', () => {
       if (Array.isArray(v5ModelContent)) {
         const filePart = v5ModelContent.find((p: any) => p.type === 'file');
         if (filePart) {
-          // Debug: log what we actually get
-          // V5 Model messages use 'data' field, not 'url'
           expect((filePart as any).data).toBe(imageUrl);
           // It should NOT be a malformed data URI
           expect((filePart as any).data).not.toContain('data:image/png;base64,https://');
